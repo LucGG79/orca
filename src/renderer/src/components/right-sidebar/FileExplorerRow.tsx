@@ -37,6 +37,7 @@ import { getFileExplorerOperationExecutionHostId } from './file-explorer-operati
 export type FileExplorerRowProps = {
   node: TreeNode
   iconTheme?: PluginIconThemeRegistration | null
+  displayDepthOffset?: number
   isExpanded: boolean
   isLoading: boolean
   isSelected: boolean
@@ -79,9 +80,11 @@ export type FileExplorerRowProps = {
   onNativeDragExpandDir: (dirPath: string) => void
 }
 
+/** Offsets visual indentation for a scoped tree without changing the node paths passed to file actions. */
 export function FileExplorerRow({
   node,
   iconTheme = null,
+  displayDepthOffset = 0,
   isExpanded,
   isLoading,
   isSelected,
@@ -178,7 +181,7 @@ export function FileExplorerRow({
             isSelected && 'text-accent-foreground',
             isFlashing && 'bg-amber-400/20 ring-1 ring-inset ring-amber-400/70'
           )}
-          style={{ paddingLeft: `${node.depth * 16 + 8}px` }}
+          style={{ paddingLeft: `${(node.depth - displayDepthOffset) * 16 + 8}px` }}
           ref={setRowDragNode}
           data-native-file-drop-dir={rowDropDir}
           // Why: marks this draggable row so the wheel-capture handler can rescue
@@ -266,8 +269,8 @@ export function FileExplorerRow({
             </>
           )}
           <span
-            // Why: marks the rename hotspot so the row's click handler can hold
-            // back the directory toggle until the double-click window closes.
+            // Why: marks the rename hotspot so the row's click handler can drop
+            // the directory toggle on the second click of a double-click rename.
             {...{ [RENAME_HOTSPOT_ATTR]: '' }}
             className={cn(
               'truncate',
